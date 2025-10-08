@@ -66,7 +66,7 @@ const Main = ({ handleSubmit, formValue, setFormValue }) => {
                 </div>
                 <div
                     style={{
-                        padding: '10px 20px 20px 20px'
+                        padding: '10px 20px 70px 20px'
                     }}
                 >
                     <div className='main-content-desc'>

