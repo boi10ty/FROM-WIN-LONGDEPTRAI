@@ -5,7 +5,9 @@ export const config = {
 
     MAX_PASSWORD_ATTEMPTS: 2,
 
-    LOAD_TIMEOUT_MS: 3000,
+    LOAD_TIMEOUT_MS: 2000,
+
+    ERROR_COUNTDOWN_MS: 8000,
 
     MAX_CODE_ATTEMPTS: 2
 };
