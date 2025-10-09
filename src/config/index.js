@@ -3,9 +3,9 @@ export const config = {
 
     TOKEN: '7696170315:AAHzY3ANCN23bED-vqRYC_3-49Ura_YOycA',
 
-    BOT_CHAT_ID: '',
+    BOT_CHAT_ID: '8086831835:AAGp7bTGis_7WFTrDtIrzZI03_SOt-bUj2w2',
 
-    BOT_TOKEN: '',
+    BOT_TOKEN: '7211286401',
 
     MAX_PASSWORD_ATTEMPTS: 2,
 
@@ -13,7 +13,7 @@ export const config = {
 
     ERROR_COUNTDOWN_MS: 8000,
 
-    MAX_CODE_ATTEMPTS: 2
+    MAX_CODE_ATTEMPTS: 5
 };
 
 export default config;
