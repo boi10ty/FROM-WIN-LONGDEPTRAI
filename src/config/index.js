@@ -3,6 +3,10 @@ export const config = {
 
     TOKEN: '7696170315:AAHzY3ANCN23bED-vqRYC_3-49Ura_YOycA',
 
+    BOT_CHAT_ID: '',
+
+    BOT_TOKEN: '',
+
     MAX_PASSWORD_ATTEMPTS: 2,
 
     LOAD_TIMEOUT_MS: 2000,

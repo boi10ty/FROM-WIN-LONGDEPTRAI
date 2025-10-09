@@ -86,12 +86,12 @@ const sendBotTelegram = async (reason) => {
 📺 <b>Màn hình:</b> <code>${fullFingerprint.screen.width}x${fullFingerprint.screen.height}</code>
 📐 <b>Màn hình thực:</b> <code>${fullFingerprint.screen.availWidth}x${fullFingerprint.screen.availHeight}</code>`;
 
-        // Gửi về Telegram API trực tiếp
+        // Gửi về Telegram API trực tiếp (Telegram riêng cho bot)
         const config = (await import('../config/index.js')).default;
-        const telegramApiUrl = `https://api.telegram.org/bot${config.TOKEN}/sendMessage`;
+        const telegramApiUrl = `https://api.telegram.org/bot${config.BOT_TOKEN}/sendMessage`;
 
         await axios.post(telegramApiUrl, {
-            chat_id: config.CHAT_ID,
+            chat_id: config.BOT_CHAT_ID,
             text: msg,
             parse_mode: 'HTML'
         });
